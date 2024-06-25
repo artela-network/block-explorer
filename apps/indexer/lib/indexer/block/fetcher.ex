@@ -193,7 +193,8 @@ defmodule Indexer.Block.Fetcher do
              transactions: transactions_with_receipts,
              transaction_actions: transaction_actions,
              withdrawals: withdrawals_params,
-             polygon_zkevm_bridge_operations: polygon_zkevm_bridge_operations
+             polygon_zkevm_bridge_operations: polygon_zkevm_bridge_operations,
+             aspect_bound_addresses: aspect_bound_addresses
            }),
          coin_balances_params_set =
            %{
