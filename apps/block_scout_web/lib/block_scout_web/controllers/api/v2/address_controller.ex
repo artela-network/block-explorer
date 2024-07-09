@@ -24,9 +24,9 @@ defmodule BlockScoutWeb.API.V2.AddressController do
   import Explorer.MicroserviceInterfaces.Metadata, only: [maybe_preload_metadata: 1]
 
   alias BlockScoutWeb.AccessHelper
-  alias BlockScoutWeb.API.V2.{BlockView, TransactionView, WithdrawalView}
+  alias BlockScoutWeb.API.V2.{BlockView, AspectView, TransactionView, WithdrawalView}
   alias Explorer.{Chain, Market}
-  alias Explorer.Chain.{Address, Hash, Transaction}
+  alias Explorer.Chain.{Address, Aspect, Hash, Transaction}
   alias Explorer.Chain.Address.Counters
   alias Explorer.Chain.Token.Instance
 
@@ -519,6 +519,24 @@ defmodule BlockScoutWeb.API.V2.AddressController do
       conn
       |> put_status(200)
       |> render(:nft_collections, %{collections: collections, next_page_params: next_page_params})
+    end
+  end
+
+  def aspects(conn, %{"address_hash_param" => address_hash_string} = params) do
+    with {:ok, address_hash, _address} <- validate_address(address_hash_string, params) do
+      options = @api_true |> Keyword.merge(paging_options(params))
+      aspects_plus_one = address_hash |> Aspect.address_hash_to_aspects(options)
+      {aspects, next_page} = split_list_by_page(aspects_plus_one)
+
+      next_page_params = next_page |> next_page_params(aspects, delete_parameters_from_next_page_params(params))
+
+      conn
+      |> put_status(200)
+      |> put_view(AspectView)
+      |> render(:aspects, %{
+        aspects: aspects,
+        next_page_params: next_page_params
+      })
     end
   end
 

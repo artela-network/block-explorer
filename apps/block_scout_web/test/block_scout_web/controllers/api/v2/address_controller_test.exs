@@ -3208,6 +3208,44 @@ defmodule BlockScoutWeb.API.V2.AddressControllerTest do
     end
   end
 
+  describe "/addresses/{address_hash}/aspects" do
+    setup do
+      {:ok, endpoint: &"/api/v2/addresses/#{&1}/aspects"}
+    end
+
+    test "get 422 on invalid address", %{conn: conn, endpoint: endpoint} do
+      request = get(conn, endpoint.("0x"))
+
+      assert %{"message" => "Invalid parameter(s)"} = json_response(request, 422)
+    end
+
+    test "return all aspects", %{conn: conn, endpoint: endpoint} do
+      aspect1 = insert(:aspect, version: 1)
+      aspect2 = insert(:aspect, version: 0)
+      aspect1_versions = insert_list(2, :aspect_version, aspect_hash: aspect1.hash)
+      aspect2_version = insert(:aspect_version, aspect_hash: aspect2.hash, version: 0)
+      address = insert(:address)
+
+      insert(:aspect_bound_address, bound_address_hash: address.hash, aspect_hash: aspect1.hash, version: 1)
+      insert(:aspect_bound_address, bound_address_hash: address.hash, aspect_hash: aspect2.hash, version: 0)
+
+      request = get(conn, endpoint.(address.hash))
+
+      assert response = json_response(request, 200)
+      assert Enum.count(response["items"]) == 2
+
+      assert %{
+               "aspect_hash" => to_string(aspect2.hash),
+               "join_points" => ["pre_tx_execute"],
+               "priority" => nil,
+               "version" => 0
+             } ==
+               response["items"] |> List.first()
+
+      assert response["next_page_params"] == nil
+    end
+  end
+
   defp compare_item(%Address{} = address, json) do
     assert Address.checksum(address.hash) == json["hash"]
     assert to_string(address.transactions_count) == json["tx_count"]

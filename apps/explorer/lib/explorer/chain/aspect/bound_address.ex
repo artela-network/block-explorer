@@ -9,6 +9,7 @@ defmodule Explorer.Chain.Aspect.BoundAddress do
 
   alias Explorer.Chain.{Aspect, Address, Hash}
   alias Explorer.PagingOptions
+  alias Explorer.Chain.Aspect.Version, as: AspectVersion
 
   @typedoc """
   * `aspect` - the `t:Explorer.Chain.Aspect.t/0` .
@@ -71,6 +72,22 @@ defmodule Explorer.Chain.Aspect.BoundAddress do
         version: ba.version,
         priority: ba.priority,
         contract_code: a.contract_code
+      },
+      order_by: [desc: :bind_block_number, desc: :bind_aspect_transaction_index]
+    )
+  end
+
+  def address_hash_to_aspects_query(address_hash) do
+    from(ba in __MODULE__,
+      join: v in AspectVersion,
+      on: v.aspect_hash == ba.aspect_hash and v.version == ba.version,
+      where: ba.bound_address_hash == ^address_hash,
+      where: is_nil(ba.unbind_aspect_transaction_hash),
+      select: %{
+        aspect_hash: ba.aspect_hash,
+        version: ba.version,
+        priority: ba.priority,
+        join_points: v.join_points
       },
       order_by: [desc: :bind_block_number, desc: :bind_aspect_transaction_index]
     )

@@ -142,6 +142,15 @@ defmodule Explorer.Chain.Aspect do
     |> select_repo(options).all()
   end
 
+  def address_hash_to_aspects(address_hash, options \\ []) do
+    paging_options = Keyword.get(options, :paging_options, Chain.default_paging_options())
+
+    BoundAddress.address_hash_to_aspects_query(address_hash)
+    |> BoundAddress.page_bound_address(paging_options)
+    |> limit(^paging_options.page_size)
+    |> select_repo(options).all()
+  end
+
   def hash_to_aspect(
         hash,
         options \\ [
