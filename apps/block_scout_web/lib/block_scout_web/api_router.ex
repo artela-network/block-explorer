@@ -175,6 +175,7 @@ defmodule BlockScoutWeb.ApiRouter do
       get("/:address_hash_param/withdrawals", V2.AddressController, :withdrawals)
       get("/:address_hash_param/nft", V2.AddressController, :nft_list)
       get("/:address_hash_param/nft/collections", V2.AddressController, :nft_collections)
+      get("/:address_hash_param/aspects", V2.AddressController, :aspects)
     end
 
     scope "/tokens" do

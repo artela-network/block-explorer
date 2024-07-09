@@ -43,6 +43,20 @@ defmodule BlockScoutWeb.API.V2.AspectView do
     }
   end
 
+  def render("aspects.json", %{aspects: aspects, next_page_params: next_page_params}) do
+    %{
+      "items" =>
+        aspects
+        |> Enum.map(fn aspect ->
+          aspect
+          |> Map.merge(%{
+            join_points: Aspect.decode_join_points(aspect.join_points)
+          })
+        end),
+      "next_page_params" => next_page_params
+    }
+  end
+
   def render("aspect.json", %{aspect: aspect}) do
     prepare_aspect(aspect)
   end
